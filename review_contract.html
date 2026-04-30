@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Contract — ContractFlow</title>
+    <!--link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"-->
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink: #0a0a0f;
+            --surface: #13131a;
+            --surface-2: #1a1a24;
+            --surface-3: #22222f;
+            --paper: #f7f5f0;
+            --accent: #c8a96e;
+            --accent-dim: rgba(200,169,110,0.15);
+            --muted: #5a5a6e;
+            --muted-light: #8888a0;
+            --border: rgba(255,255,255,0.06);
+            --success: #3ecf8e;
+            --warning: #f5a623;
+            --danger: #f56342;
+            --info: #6c7ee1;
+        }
+
+        body { font-family: 'DM Sans', sans-serif; background: var(--ink); color: var(--paper); min-height: 100vh; }
+
+        .navbar {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(10,10,15,0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-left { display: flex; align-items: center; gap: 16px; }
+        .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .logo-mark { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; transform: rotate(-6deg); }
+        .logo-mark svg { width: 14px; height: 14px; fill: var(--ink); }
+        .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--paper); }
+        .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted-light); }
+        .breadcrumb a { color: var(--muted-light); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--paper); }
+        .breadcrumb .sep { opacity: 0.4; }
+        .breadcrumb .current { color: var(--paper); font-weight: 500; }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; text-decoration: none; border: none; cursor: pointer; transition: all 0.15s; }
+        .btn-ghost { background: var(--surface-2); color: var(--muted-light); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--surface-3); color: var(--paper); }
+
+        /* LAYOUT */
+        .page { padding: 32px; display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+
+        @media (max-width: 900px) { .page { grid-template-columns: 1fr; } }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.04em;
+            color: var(--paper);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title-icon {
+            width: 28px; height: 28px;
+            background: var(--surface-3);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        /* CONTRACT META */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .meta-cell {
+            padding: 14px 16px;
+            background: var(--surface-2);
+        }
+
+        .meta-label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+        .meta-value { font-size: 0.875rem; font-weight: 500; color: var(--paper); }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .status-dot { width: 5px; height: 5px; border-radius: 50%; }
+        .status-pending { background: rgba(245,166,35,0.12); color: var(--warning); }
+        .status-pending .status-dot { background: var(--warning); }
+        .status-approved { background: rgba(62,207,142,0.12); color: var(--success); }
+        .status-approved .status-dot { background: var(--success); }
+        .status-rejected { background: rgba(245,99,66,0.12); color: var(--danger); }
+        .status-rejected .status-dot { background: var(--danger); }
+
+        /* DESCRIPTION */
+        .desc-block {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 0.875rem;
+            color: var(--muted-light);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        /* PDF PREVIEW */
+        .pdf-frame {
+            width: 100%;
+            height: 380px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            margin-bottom: 12px;
+        }
+
+        .btn-open-doc {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            background: rgba(108,126,225,0.12);
+            border: 1px solid rgba(108,126,225,0.2);
+            color: var(--info);
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .btn-open-doc:hover { background: rgba(108,126,225,0.2); }
+
+        /* APPROVAL HISTORY */
+        .timeline { list-style: none; }
+
+        .timeline-item {
+            display: flex;
+            gap: 14px;
+            padding-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 32px;
+            bottom: 0;
+            width: 1px;
+            background: var(--border);
+        }
+
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-item:last-child::before { display: none; }
+
+        .timeline-dot {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .dot-approved { background: rgba(62,207,142,0.15); color: var(--success); border: 1px solid rgba(62,207,142,0.3); }
+        .dot-rejected { background: rgba(245,99,66,0.15); color: var(--danger); border: 1px solid rgba(245,99,66,0.3); }
+        .dot-pending { background: rgba(245,166,35,0.15); color: var(--warning); border: 1px solid rgba(245,166,35,0.3); }
+        .dot-changes { background: rgba(108,126,225,0.15); color: var(--info); border: 1px solid rgba(108,126,225,0.3); }
+
+        .timeline-content { flex: 1; }
+        .timeline-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+        .timeline-stage { font-size: 0.82rem; font-weight: 600; color: var(--paper); }
+        .timeline-status { font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+        .timeline-comment { font-size: 0.78rem; color: var(--muted-light); line-height: 1.5; }
+
+        /* ACTION PANEL */
+        .action-card { position: sticky; top: 90px; }
+
+        textarea.comment-area {
+            width: 100%;
+            padding: 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--paper);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 110px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea.comment-area:focus { border-color: var(--accent); }
+        textarea.comment-area::placeholder { color: var(--muted); }
+
+        .action-label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-light); margin-bottom: 10px; margin-top: 20px; }
+
+        .action-btns { display: flex; flex-direction: column; gap: 8px; }
+
+        .action-btn {
+            width: 100%;
+            padding: 13px 20px;
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-approve { background: rgba(62,207,142,0.12); color: var(--success); border: 1px solid rgba(62,207,142,0.25); }
+        .btn-approve:hover { background: rgba(62,207,142,0.2); transform: translateY(-1px); }
+        .btn-reject { background: rgba(245,99,66,0.12); color: var(--danger); border: 1px solid rgba(245,99,66,0.25); }
+        .btn-reject:hover { background: rgba(245,99,66,0.2); transform: translateY(-1px); }
+        .btn-changes { background: rgba(245,166,35,0.1); color: var(--warning); border: 1px solid rgba(245,166,35,0.2); }
+        .btn-changes:hover { background: rgba(245,166,35,0.18); transform: translateY(-1px); }
+
+        .action-hint { font-size: 0.72rem; color: var(--muted); margin-top: 14px; text-align: center; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-left">
+        <a href="/dashboard" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>
+            </div>
+            <span class="logo-text">ContractFlow</span>
+        </a>
+        <div class="breadcrumb">
+            <span class="sep">/</span>
+            <a href="/contracts">Contracts</a>
+            <span class="sep">/</span>
+            <span class="current">Review #{{ contract.contract_id }}</span>
+        </div>
+    </div>
+    <a href="/contracts" class="btn btn-ghost">← Back</a>
+</nav>
+
+<div class="page">
+    <!-- LEFT: CONTRACT DETAILS -->
+    <div>
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-title">
+                <div class="card-title-icon">📋</div>
+                Contract Details
+            </div>
+
+            <div class="meta-grid">
+                <div class="meta-cell">
+                    <div class="meta-label">Contract ID</div>
+                    <div class="meta-value">#{{ contract.contract_id }}</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">Title</div>
+                    <div class="meta-value">{{ contract.title }}</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">Department</div>
+                    <div class="meta-value">{{ contract.department }}</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">Current Stage</div>
+                    <div class="meta-value">{{ contract.current_stage }}</div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">Status</div>
+                    <div class="meta-value">
+                        {% if contract.status == "Approved" %}
+                            <span class="status-badge status-approved"><span class="status-dot"></span>Approved</span>
+                        {% elif contract.status == "Rejected" %}
+                            <span class="status-badge status-rejected"><span class="status-dot"></span>Rejected</span>
+                        {% else %}
+                            <span class="status-badge status-pending"><span class="status-dot"></span>{{ contract.status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="meta-cell">
+                    <div class="meta-label">Expiry Date</div>
+                    <div class="meta-value">{{ contract.expiry_date }}</div>
+                </div>
+            </div>
+
+            <div class="meta-label" style="margin-bottom: 8px;">Description</div>
+            <div class="desc-block">{{ contract.description }}</div>
+
+            {% if contract.file_path %}
+            <div class="meta-label" style="margin-bottom: 10px;">Attached Document</div>
+            <iframe src="/{{ contract.file_path }}" class="pdf-frame"></iframe>
+            <a href="/{{ contract.file_path }}" class="btn-open-doc" target="_blank">
+                📄 Open Full Document
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <div class="card-title-icon">🕐</div>
+                Approval History
+            </div>
+
+            {% if approvals %}
+            <ul class="timeline">
+                {% for log in approvals %}
+                <li class="timeline-item">
+                    <div class="timeline-dot
+                        {% if log.status == 'Approved' %}dot-approved
+                        {% elif log.status == 'Rejected' %}dot-rejected
+                        {% elif log.status == 'Changes Requested' %}dot-changes
+                        {% else %}dot-pending{% endif %}">
+                        {% if log.status == 'Approved' %}✓
+                        {% elif log.status == 'Rejected' %}✕
+                        {% elif log.status == 'Changes Requested' %}↺
+                        {% else %}…{% endif %}
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <span class="timeline-stage">{{ log.stage }}</span>
+                            <span class="timeline-status
+                                {% if log.status == 'Approved' %}badge-approved
+                                {% elif log.status == 'Rejected' %}badge-rejected
+                                {% else %}badge-changes{% endif %}"
+                                style="background: rgba(255,255,255,0.06); color: var(--muted-light);">
+                                {{ log.status }}
+                            </span>
+                        </div>
+                        {% if log.comment %}
+                        <div class="timeline-comment">{{ log.comment }}</div>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color: var(--muted-light); font-size: 0.875rem;">No approval history yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if session['role'] in ['Legal', 'Finance', 'Procurement'] %}
+
+<!-- RIGHT: ACTION PANEL -->
+<div class="action-card">
+    <div class="card">
+        <div class="card-title">
+            <div class="card-title-icon">⚡</div>
+            Take Action
+        </div>
+
+        <form method="POST">
+            <div class="action-label">Add Comment</div>
+            <textarea name="comment" class="comment-area" placeholder="Provide reasoning, feedback, or notes for this decision…" required></textarea>
+
+            <div class="action-label">Decision</div>
+            <div class="action-btns">
+                <button type="submit" name="action" value="approve" class="action-btn btn-approve">
+                    ✓ Approve Contract
+                </button>
+                <button type="submit" name="action" value="reject" class="action-btn btn-reject">
+                    ✕ Reject Contract
+                </button>
+                <button type="submit" name="action" value="changes" class="action-btn btn-changes">
+                    ↺ Request Changes
+                </button>
+            </div>
+
+            <p class="action-hint">Your decision will be logged and the contract creator will be notified.</p>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+</div>
+
+</body>
+</html>

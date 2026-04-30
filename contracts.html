@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contracts — ContractFlow</title>
+    <!--link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"-->
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink: #0a0a0f;
+            --surface: #13131a;
+            --surface-2: #1a1a24;
+            --surface-3: #22222f;
+            --paper: #f7f5f0;
+            --accent: #c8a96e;
+            --accent-dim: rgba(200,169,110,0.15);
+            --muted: #5a5a6e;
+            --muted-light: #8888a0;
+            --border: rgba(255,255,255,0.06);
+            --success: #3ecf8e;
+            --warning: #f5a623;
+            --danger: #f56342;
+            --info: #6c7ee1;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            color: var(--paper);
+            min-height: 100vh;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(10,10,15,0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 16px; }
+
+        .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .logo-mark {
+            width: 30px; height: 30px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            transform: rotate(-6deg);
+        }
+        .logo-mark svg { width: 14px; height: 14px; fill: var(--ink); }
+        .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--paper); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--muted-light);
+        }
+        .breadcrumb a { color: var(--muted-light); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--paper); }
+        .breadcrumb .sep { opacity: 0.4; }
+        .breadcrumb .current { color: var(--paper); font-weight: 500; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-ghost { background: var(--surface-2); color: var(--muted-light); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--surface-3); color: var(--paper); }
+        .btn-primary { background: var(--accent); color: var(--ink); }
+        .btn-primary:hover { background: #d9ba7f; }
+        .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+        /* PAGE */
+        .page { padding: 32px; }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: -0.03em;
+        }
+
+        .page-subtitle { font-size: 0.82rem; color: var(--muted-light); margin-top: 4px; }
+
+        /* SEARCH & FILTERS */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 12px; top: 50%;
+            transform: translateY(-50%);
+            width: 16px; height: 16px;
+            color: var(--muted);
+            fill: currentColor;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--paper);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus { border-color: var(--accent); }
+        .search-box input::placeholder { color: var(--muted); }
+
+        .filter-select {
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--muted-light);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* TABLE */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+
+        thead th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface-2); }
+
+        tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .contract-id { font-family: 'DM Sans', sans-serif; font-size: 0.75rem; color: var(--muted-light); }
+
+        .contract-title { font-weight: 500; color: var(--paper); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .dept-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            background: var(--surface-3);
+            color: var(--muted-light);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+        .badge-approved { background: rgba(62,207,142,0.12); color: var(--success); }
+        .badge-approved .badge-dot { background: var(--success); }
+        .badge-rejected { background: rgba(245,99,66,0.12); color: var(--danger); }
+        .badge-rejected .badge-dot { background: var(--danger); }
+        .badge-pending { background: rgba(245,166,35,0.12); color: var(--warning); }
+        .badge-pending .badge-dot { background: var(--warning); }
+        .badge-expired { background: rgba(255,255,255,0.06); color: var(--muted-light); }
+        .badge-expired .badge-dot { background: var(--muted); }
+
+        .badge-priority-high { background: rgba(245,99,66,0.12); color: var(--danger); }
+        .badge-priority-med { background: rgba(245,166,35,0.12); color: var(--warning); }
+        .badge-priority-low { background: rgba(62,207,142,0.12); color: var(--success); }
+
+        .badge-risk { background: rgba(245,99,66,0.1); color: var(--danger); font-size: 0.68rem; }
+        .badge-safe { background: rgba(62,207,142,0.08); color: var(--success); font-size: 0.68rem; }
+
+        .keyword-chip {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.68rem;
+            background: rgba(108,126,225,0.12);
+            color: var(--info);
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .summary-text { color: var(--muted-light); font-size: 0.78rem; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .feedback-box {
+            background: rgba(245,99,66,0.08);
+            border: 1px solid rgba(245,99,66,0.2);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.72rem;
+            max-width: 160px;
+        }
+
+        .feedback-stage { font-weight: 600; color: var(--danger); font-size: 0.7rem; margin-bottom: 2px; }
+        .feedback-comment { color: var(--muted-light); white-space: normal; }
+
+        .btn-review {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: rgba(108,126,225,0.12);
+            color: var(--info);
+            border: 1px solid rgba(108,126,225,0.2);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn-review:hover { background: rgba(108,126,225,0.2); }
+
+        .no-action { color: var(--muted); font-size: 0.78rem; }
+
+        .empty-state {
+            padding: 60px 32px;
+            text-align: center;
+        }
+
+        .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+        .empty-text { color: var(--muted-light); font-size: 0.875rem; }
+
+        .row-high td:first-child { border-left: 3px solid var(--danger); }
+        .row-medium td:first-child { border-left: 3px solid var(--warning); }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-left">
+        <a href="/dashboard" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>
+            </div>
+            <span class="logo-text">ContractFlow</span>
+        </a>
+        <div class="breadcrumb">
+            <span class="sep">/</span>
+            <a href="/dashboard">Dashboard</a>
+            <span class="sep">/</span>
+            <span class="current">Contracts</span>
+        </div>
+    </div>
+    <a href="/dashboard" class="btn btn-ghost">← Back</a>
+</nav>
+
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">All Contracts</h1>
+            <p class="page-subtitle">Browse, filter, and manage contracts across all departments.</p>
+        </div>
+        <a href="/create_contract" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            New Contract
+        </a>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <div class="search-box">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" id="searchInput" placeholder="Search by title, department, status…">
+        </div>
+
+        <select class="filter-select" id="statusFilter" onchange="filterTable()">
+            <option value="">All Status</option>
+            <option>Approved</option>
+            <option>Pending</option>
+            <option>Rejected</option>
+            <option>Expired</option>
+        </select>
+
+        <select class="filter-select" id="priorityFilter" onchange="filterTable()">
+            <option value="">All Priority</option>
+            <option value="3">High</option>
+            <option value="2">Medium</option>
+            <option value="1">Low</option>
+        </select>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Stage</th>
+                        <th>Expiry</th>
+                        <th>Priority</th>
+                        <th>Risk</th>
+                        <th>Keywords</th>
+                        <th>Summary</th>
+                        <th>Feedback</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="contractTable">
+                    {% for contract in contracts %}
+                    <tr class="{% if contract.priority == 3 %}row-high{% elif contract.priority == 2 %}row-medium{% endif %}"
+                        data-status="{{ contract.status }}"
+                        data-priority="{{ contract.priority }}">
+
+                        <td><span class="contract-id">#{{ contract.contract_id }}</span></td>
+
+                        <td><span class="contract-title">{{ contract.title }}</span></td>
+
+                        <td><span class="dept-badge">{{ contract.department }}</span></td>
+
+                        <td>
+                            {% if contract.status == "Approved" %}
+                                <span class="badge badge-approved"><span class="badge-dot"></span>Approved</span>
+                            {% elif contract.status == "Rejected" %}
+                                <span class="badge badge-rejected"><span class="badge-dot"></span>Rejected</span>
+                            {% elif contract.status == "Expired" %}
+                                <span class="badge badge-expired"><span class="badge-dot"></span>Expired</span>
+                            {% else %}
+                                <span class="badge badge-pending"><span class="badge-dot"></span>{{ contract.status }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td><span class="no-action">{{ contract.current_stage }}</span></td>
+
+                        <td><span class="no-action">{{ contract.expiry_date }}</span></td>
+
+                        <td>
+                            {% if contract.priority == 3 %}
+                                <span class="badge badge-priority-high">High</span>
+                            {% elif contract.priority == 2 %}
+                                <span class="badge badge-priority-med">Med</span>
+                            {% else %}
+                                <span class="badge badge-priority-low">Low</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if contract.risk_flags %}
+                                <span class="badge badge-risk">⚠ {{ contract.risk_flags }}</span>
+                            {% else %}
+                                <span class="badge badge-safe">✓ Safe</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if contract.keywords %}
+                                <span class="keyword-chip">{{ contract.keywords }}</span>
+                            {% else %}
+                                <span class="no-action">—</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if contract.summary %}
+                                <span class="summary-text" title="{{ contract.summary }}">{{ contract.summary[:70] }}…</span>
+                            {% else %}
+                                <span class="no-action">—</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if contract.status in ["Rejected", "Changes Requested"] and contract.last_comment %}
+                                <div class="feedback-box">
+                                    <div class="feedback-stage">{{ contract.last_stage }}</div>
+                                    <div class="feedback-comment">{{ contract.last_comment }}</div>
+                                </div>
+                            {% else %}
+                                <span class="no-action">—</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if contract.status not in ["Approved", "Rejected", "Expired"] %}
+                                <a href="/review/{{ contract.id }}" class="btn-review">
+                                    Review →
+                                </a>
+                            {% else %}
+                                <span class="no-action">—</span>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="12">
+                            <div class="empty-state">
+                                <div class="empty-icon">📂</div>
+                                <div class="empty-text">No contracts found.</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value.toLowerCase();
+    const priority = document.getElementById('priorityFilter').value;
+
+    document.querySelectorAll('#contractTable tr[data-status]').forEach(row => {
+        const text = row.innerText.toLowerCase();
+        const rowStatus = (row.dataset.status || '').toLowerCase();
+        const rowPriority = row.dataset.priority || '';
+
+        const matchSearch = text.includes(search);
+        const matchStatus = !status || rowStatus.includes(status);
+        const matchPriority = !priority || rowPriority === priority;
+
+        row.style.display = matchSearch && matchStatus && matchPriority ? '' : 'none';
+    });
+}
+
+document.getElementById('searchInput').addEventListener('keyup', filterTable);
+</script>
+
+</body>
+</html>

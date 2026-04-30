@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users — ContractFlow</title>
+    <!--link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"-->
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink: #0a0a0f;
+            --surface: #13131a;
+            --surface-2: #1a1a24;
+            --surface-3: #22222f;
+            --paper: #f7f5f0;
+            --accent: #c8a96e;
+            --accent-dim: rgba(200,169,110,0.15);
+            --muted: #5a5a6e;
+            --muted-light: #8888a0;
+            --border: rgba(255,255,255,0.06);
+            --success: #3ecf8e;
+            --warning: #f5a623;
+            --danger: #f56342;
+            --info: #6c7ee1;
+        }
+
+        body { font-family: 'DM Sans', sans-serif; background: var(--ink); color: var(--paper); min-height: 100vh; }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(10,10,15,0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-left { display: flex; align-items: center; gap: 16px; }
+        .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .logo-mark { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; transform: rotate(-6deg); }
+        .logo-mark svg { width: 14px; height: 14px; fill: var(--ink); }
+        .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--paper); }
+        .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted-light); }
+        .breadcrumb a { color: var(--muted-light); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--paper); }
+        .breadcrumb .sep { opacity: 0.4; }
+        .breadcrumb .current { color: var(--paper); font-weight: 500; }
+        .btn-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500; text-decoration: none; background: var(--surface-2); color: var(--muted-light); border: 1px solid var(--border); transition: all 0.15s; }
+        .btn-back:hover { background: var(--surface-3); color: var(--paper); }
+
+        /* PAGE */
+        .page { padding: 36px 32px; }
+
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.6rem; letter-spacing: -0.03em; }
+        .page-subtitle { font-size: 0.82rem; color: var(--muted-light); margin-top: 4px; }
+
+        /* ADD USER CARD */
+        .add-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            letter-spacing: 0.04em;
+            color: var(--paper);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title-icon {
+            width: 28px; height: 28px;
+            background: var(--surface-3);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        /* FORM GRID */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 180px 140px;
+            gap: 12px;
+            align-items: end;
+        }
+
+        @media (max-width: 1100px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted-light);
+            margin-bottom: 7px;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--paper);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field input:focus, .field select:focus { border-color: var(--accent); }
+        .field input::placeholder { color: var(--muted); }
+        .field select option { background: var(--surface-3); }
+
+        .btn-add {
+            width: 100%;
+            padding: 11px 20px;
+            background: var(--accent);
+            color: var(--ink);
+            border: none;
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-add:hover {
+            background: #d9ba7f;
+            box-shadow: 0 4px 16px rgba(200,169,110,0.25);
+            transform: translateY(-1px);
+        }
+
+        /* STATS ROW */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .stat-pill-value {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .stat-pill-label { font-size: 0.7rem; color: var(--muted-light); margin-top: 2px; }
+
+        .pill-admin .stat-pill-value { color: #e879f9; }
+        .pill-creator .stat-pill-value { color: var(--info); }
+        .pill-legal .stat-pill-value { color: var(--warning); }
+        .pill-finance .stat-pill-value { color: var(--success); }
+        .pill-procurement .stat-pill-value { color: var(--accent); }
+
+        /* TABLE CARD */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-box {
+            position: relative;
+            width: 260px;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 11px; top: 50%;
+            transform: translateY(-50%);
+            width: 15px; height: 15px;
+            color: var(--muted);
+            fill: currentColor;
+            pointer-events: none;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 9px 12px 9px 33px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--paper);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus { border-color: var(--accent); }
+        .search-box input::placeholder { color: var(--muted); }
+
+        .user-count {
+            font-size: 0.78rem;
+            color: var(--muted-light);
+        }
+
+        .user-count strong { color: var(--paper); }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+
+        thead th {
+            padding: 13px 18px;
+            text-align: left;
+            font-size: 0.67rem;
+            font-weight: 600;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface-2); }
+        tbody td { padding: 14px 18px; vertical-align: middle; }
+
+        .user-id { font-size: 0.72rem; color: var(--muted-light); font-family: monospace; }
+
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+
+        .user-avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.78rem;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .user-name { font-weight: 500; font-size: 0.875rem; color: var(--paper); }
+        .user-email { font-size: 0.75rem; color: var(--muted-light); margin-top: 1px; }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .role-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+        .role-Admin { background: rgba(232,121,249,0.1); color: #e879f9; }
+        .role-Admin .role-dot { background: #e879f9; }
+        .role-Creator { background: rgba(108,126,225,0.1); color: var(--info); }
+        .role-Creator .role-dot { background: var(--info); }
+        .role-Legal { background: rgba(245,166,35,0.1); color: var(--warning); }
+        .role-Legal .role-dot { background: var(--warning); }
+        .role-Finance { background: rgba(62,207,142,0.1); color: var(--success); }
+        .role-Finance .role-dot { background: var(--success); }
+        .role-Procurement { background: rgba(200,169,110,0.12); color: var(--accent); }
+        .role-Procurement .role-dot { background: var(--accent); }
+
+        .btn-delete {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: rgba(245,99,66,0.08);
+            border: 1px solid rgba(245,99,66,0.18);
+            color: var(--danger);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-delete:hover {
+            background: rgba(245,99,66,0.16);
+            border-color: rgba(245,99,66,0.35);
+            transform: translateY(-1px);
+        }
+
+        /* CONFIRM MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 32px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            animation: scaleIn 0.2s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+        .modal-icon {
+            width: 56px; height: 56px;
+            background: rgba(245,99,66,0.1);
+            border: 1px solid rgba(245,99,66,0.25);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            margin: 0 auto 16px;
+        }
+
+        .modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem; margin-bottom: 8px; }
+        .modal-text { font-size: 0.82rem; color: var(--muted-light); line-height: 1.6; margin-bottom: 24px; }
+        .modal-name { color: var(--paper); font-weight: 500; }
+
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-cancel { flex: 1; padding: 11px; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted-light); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; cursor: pointer; transition: all 0.15s; }
+        .modal-cancel:hover { background: var(--surface-3); color: var(--paper); }
+        .modal-confirm { flex: 1; padding: 11px; background: var(--danger); border: none; color: white; border-radius: 10px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: all 0.15s; }
+        .modal-confirm:hover { background: #f77557; }
+
+        /* Entry animation */
+        .add-card { animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+        .table-card { animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) 0.08s both; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-left">
+        <a href="/dashboard" class="logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>
+            </div>
+            <span class="logo-text">ContractFlow</span>
+        </a>
+        <div class="breadcrumb">
+            <span class="sep">/</span>
+            <a href="/dashboard">Dashboard</a>
+            <span class="sep">/</span>
+            <span class="current">Manage Users</span>
+        </div>
+    </div>
+    <a href="/dashboard" class="btn-back">← Back</a>
+</nav>
+
+<div class="page">
+
+    <div class="page-header">
+        <h1 class="page-title">Manage Users</h1>
+        <p class="page-subtitle">Add, view, and remove users from the system.</p>
+    </div>
+
+    <!-- ADD USER -->
+    <div class="add-card">
+        <div class="card-title">
+            <div class="card-title-icon">➕</div>
+            Add New User
+        </div>
+
+        <form method="POST">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Full Name</label>
+                    <input type="text" name="name" placeholder="e.g. Jane Smith" required>
+                </div>
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="jane@company.com" required>
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                <div class="field">
+                    <label>Role</label>
+                    <select name="role">
+                        <option>Admin</option>
+                        <option>Creator</option>
+                        <option>Legal</option>
+                        <option>Finance</option>
+                        <option>Procurement</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn-add">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        Add User
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- USER TABLE -->
+    <div class="table-card">
+        <div class="table-header">
+            <div class="card-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;">
+                <div class="card-title-icon">👥</div>
+                All Users
+                <span class="user-count" style="font-family:'DM Sans';font-weight:400;">— <strong id="visibleCount">{{ users|length }}</strong> members</span>
+            </div>
+
+            <div class="search-box">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="searchInput" placeholder="Search users…">
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                {% for user in users %}
+                <tr data-name="{{ user.name|lower }}" data-email="{{ user.email|lower }}" data-role="{{ user.role|lower }}">
+                    <td><span class="user-id">#{{ user.id }}</span></td>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">{{ user.name[0]|upper }}</div>
+                            <div>
+                                <div class="user-name">{{ user.name }}</div>
+                                <div class="user-email">{{ user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="role-badge role-{{ user.role }}">
+                            <span class="role-dot"></span>
+                            {{ user.role }}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-delete"
+                            onclick="confirmDelete('/delete_user/{{ user.id }}', '{{ user.name }}')">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <div class="modal-icon">🗑</div>
+        <div class="modal-title">Delete User?</div>
+        <div class="modal-text">You're about to remove <span class="modal-name" id="deleteUserName"></span> from the system. This action cannot be undone.</div>
+        <div class="modal-actions">
+            <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            <a id="deleteConfirmBtn" href="#" class="modal-confirm" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">Delete</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(url, name) {
+    document.getElementById('deleteUserName').textContent = name;
+    document.getElementById('deleteConfirmBtn').href = url;
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+}
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const val = this.value.toLowerCase();
+    let visible = 0;
+    document.querySelectorAll('#userTable tr').forEach(row => {
+        const match = (row.dataset.name + row.dataset.email + row.dataset.role).includes(val);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    document.getElementById('visibleCount').textContent = visible;
+});
+</script>
+
+</body>
+</html>

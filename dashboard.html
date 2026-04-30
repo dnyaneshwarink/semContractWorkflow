@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — ContractFlow</title>
+    <!--link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink: #0a0a0f;
+            --surface: #13131a;
+            --surface-2: #1a1a24;
+            --surface-3: #22222f;
+            --paper: #f7f5f0;
+            --accent: #c8a96e;
+            --accent-dim: rgba(200,169,110,0.15);
+            --muted: #5a5a6e;
+            --muted-light: #8888a0;
+            --border: rgba(255,255,255,0.06);
+            --success: #3ecf8e;
+            --warning: #f5a623;
+            --danger: #f56342;
+            --info: #6c7ee1;
+            --purple: #e879f9;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            color: var(--paper);
+            min-height: 100vh;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            padding: 28px 0;
+        }
+
+        .sidebar-brand {
+            padding: 0 24px 28px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 36px; height: 36px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            transform: rotate(-6deg);
+            flex-shrink: 0;
+        }
+
+        .logo-mark svg { width: 18px; height: 18px; fill: var(--ink); }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: -0.02em;
+            color: var(--paper);
+        }
+
+        .nav-section { padding: 0 12px; flex: 1; }
+
+        .nav-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 0 12px;
+            margin-bottom: 6px;
+            margin-top: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--muted-light);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 400;
+            transition: all 0.15s;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover { background: var(--surface-3); color: var(--paper); }
+        .nav-item.active { color: var(--accent); background: var(--accent-dim); }
+        .nav-item svg { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
+        .nav-item.active svg { opacity: 1; }
+
+        .nav-item.admin-item { color: var(--muted-light); }
+        .nav-item.admin-item:hover { background: rgba(232,121,249,0.08); color: var(--purple); }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 20px;
+        }
+
+        .nav-badge.gold {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(200,169,110,0.3);
+        }
+
+        .sidebar-footer {
+            padding: 20px 24px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-pill { display: flex; align-items: center; gap: 10px; }
+
+        .avatar {
+            width: 34px; height: 34px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: 0.82rem; font-weight: 500; color: var(--paper); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.7rem; color: var(--muted-light); text-transform: capitalize; }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted-light);
+            font-size: 0.75rem;
+            text-decoration: none;
+            transition: all 0.15s;
+            margin-top: 12px;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-logout:hover { background: rgba(245,99,66,0.1); color: var(--danger); border-color: rgba(245,99,66,0.3); }
+
+        /* ─── MAIN ─── */
+        .main {
+            margin-left: 240px;
+            min-height: 100vh;
+            padding: 32px 36px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 36px;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.75rem;
+            letter-spacing: -0.03em;
+            color: var(--paper);
+        }
+
+        .page-subtitle { font-size: 0.85rem; color: var(--muted-light); margin-top: 2px; }
+
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--ink); }
+        .btn-primary:hover { background: #d9ba7f; box-shadow: 0 4px 16px rgba(200,169,110,0.3); }
+        .btn-ghost { background: var(--surface-2); color: var(--muted-light); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--surface-3); color: var(--paper); }
+        .btn-admin { background: rgba(232,121,249,0.1); color: var(--purple); border: 1px solid rgba(232,121,249,0.2); }
+        .btn-admin:hover { background: rgba(232,121,249,0.18); }
+
+        .mode-btn {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--muted-light);
+            border-radius: 8px;
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.15s;
+        }
+
+        .mode-btn:hover { background: var(--surface-3); color: var(--paper); }
+
+        /* ─── STAT CARDS ─── */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.10s; }
+        .stat-card:nth-child(3) { animation-delay: 0.15s; }
+        .stat-card:nth-child(4) { animation-delay: 0.20s; }
+
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .stat-card.total::before  { background: var(--info); }
+        .stat-card.pending::before { background: var(--warning); }
+        .stat-card.approved::before { background: var(--success); }
+        .stat-card.rejected::before { background: var(--danger); }
+
+        .stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .stat-icon svg { width: 20px; height: 20px; }
+
+        .stat-card.total   .stat-icon { background: rgba(108,126,225,0.15); color: var(--info); }
+        .stat-card.pending .stat-icon { background: rgba(245,166,35,0.15);  color: var(--warning); }
+        .stat-card.approved .stat-icon { background: rgba(62,207,142,0.15); color: var(--success); }
+        .stat-card.rejected .stat-icon { background: rgba(245,99,66,0.15);  color: var(--danger); }
+
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 2.2rem;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .stat-label { font-size: 0.78rem; color: var(--muted-light); font-weight: 400; }
+
+        /* ─── CHARTS ─── */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.2s both;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--paper);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            background: var(--surface-3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        /* ─── PROGRESS BARS ─── */
+        .progress-item { margin-bottom: 18px; }
+        .progress-item:last-child { margin-bottom: 0; }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 7px;
+        }
+
+        .progress-label { font-size: 0.78rem; color: var(--muted-light); }
+        .progress-value { font-size: 0.78rem; font-weight: 600; color: var(--paper); }
+
+        .progress-track {
+            height: 6px;
+            background: var(--surface-3);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1.2s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        /* ─── BOTTOM GRID ─── */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .expiry-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .expiry-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .expiry-label { font-size: 0.82rem; color: var(--muted-light); }
+
+        .expiry-value {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: -0.03em;
+        }
+
+        .expiry-row.warning .expiry-value { color: var(--warning); }
+        .expiry-row.danger  .expiry-value { color: var(--danger); }
+         
+    </style>
+</head>
+<body>
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-logo">
+            <div class="logo-mark">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 13h8v1.5H8V13zm0 3h8v1.5H8V16zm0-6h3v1.5H8V10z"/></svg>
+            </div>
+            <span class="logo-text">ContractFlow</span>
+        </div>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-label">Main</div>
+
+        <a href="/dashboard" class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            Dashboard
+        </a>
+
+        <a href="/contracts" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>
+            All Contracts
+        </a>
+
+                {% if role == "Creator" %}
+        <a href="/create_contract" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            New Contract
+        </a>
+        {% endif %}
+
+        <div class="nav-label">Alerts</div>
+
+        <a href="/notifications" class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            Notifications
+            <span class="nav-badge">!</span>
+        </a>
+
+        {% if role == "Admin" %}
+        <div class="nav-label">Administration</div>
+
+        <a href="/manage_users" class="nav-item admin-item">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            Manage Users
+            <span class="nav-badge gold">Admin</span>
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="user-pill">
+            <div class="avatar">{{ name[0]|upper if name else 'U' }}</div>
+            <div class="user-info">
+                <div class="user-name">{{ name }}</div>
+                <div class="user-role">{{ role }}</div>
+            </div>
+        </div>
+        <a href="/logout" class="btn-logout">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+            Sign Out
+        </a>
+    </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main class="main">
+    <div class="topbar">
+        <div>
+            <h1 class="page-title">Overview</h1>
+            <p class="page-subtitle">Welcome back, {{ name }} — here's what's happening today.</p>
+        </div>
+        <div class="topbar-actions">
+           
+                    {% if role == "Creator" %}
+        <a href="/create_contract" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            New Contract
+        </a>
+        {% endif %}
+            <a href="/contracts" class="btn btn-ghost">All Contracts</a>
+            {% if role == "Admin" %}
+            <a href="/manage_users" class="btn btn-admin">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                Manage Users
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stat-grid">
+        <div class="stat-card total">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>
+            </div>
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-label">Total Contracts</div>
+        </div>
+
+        <div class="stat-card pending">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            </div>
+            <div class="stat-value">{{ pending }}</div>
+            <div class="stat-label">Pending Review</div>
+        </div>
+
+        <div class="stat-card approved">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14l-4-4 1.41-1.41L10 13.17l6.59-6.59L18 8l-8 8z"/></svg>
+            </div>
+            <div class="stat-value">{{ approved }}</div>
+            <div class="stat-label">Approved</div>
+        </div>
+
+        <div class="stat-card rejected">
+            <div class="stat-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+            </div>
+            <div class="stat-value">{{ rejected }}</div>
+            <div class="stat-label">Rejected</div>
+        </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-grid">
+        <div class="card">
+            <div class="card-title"><span>📊</span> Status Breakdown</div>
+            <canvas id="statusChart" height="200"></canvas>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span>👥</span> Users by Role</div>
+            <canvas id="userChart" height="200"></canvas>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span>⚡</span> Workflow Progress</div>
+
+            <div class="progress-item">
+                <div class="progress-header">
+                    <span class="progress-label">Pending</span>
+                    <span class="progress-value">{{ pending_percent|round(1) }}%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {{ pending_percent }}%; background: var(--warning);"></div>
+                </div>
+            </div>
+
+            <div class="progress-item">
+                <div class="progress-header">
+                    <span class="progress-label">Approved</span>
+                    <span class="progress-value">{{ approved_percent|round(1) }}%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {{ approved_percent }}%; background: var(--success);"></div>
+                </div>
+            </div>
+
+            <div class="progress-item">
+                <div class="progress-header">
+                    <span class="progress-label">Rejected</span>
+                    <span class="progress-value">{{ rejected_percent|round(1) }}%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {{ rejected_percent }}%; background: var(--danger);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="bottom-grid">
+        <div class="card">
+            <div class="card-title"><span>⚠️</span> Expiry Insights</div>
+
+            <div class="expiry-row warning">
+                <div>
+                    <div class="expiry-label">Expiring within 7 Days</div>
+                </div>
+                <div class="expiry-value">{{ expiry_week }}</div>
+            </div>
+
+            <div class="expiry-row danger">
+                <div>
+                    <div class="expiry-label">Already Expired</div>
+                </div>
+                <div class="expiry-value">{{ expired }}</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><span>❌</span> Rejection by Stage</div>
+            <canvas id="rejectionChart" height="160"></canvas>
+        </div>
+    </div>
+</main>
+
+<!-- CHART SCRIPTS -->
+<script>
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Pending', 'Approved', 'Rejected'],
+        datasets: [{
+            data: [{{ pending }}, {{ approved }}, {{ rejected }}],
+            backgroundColor: ['#f5a623', '#3ecf8e', '#f56342'],
+            borderWidth: 0,
+            hoverOffset: 6
+        }]
+    },
+    options: {
+        cutout: '72%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { color: '#8888a0', padding: 16, font: { family: 'DM Sans', size: 11 } }
+            }
+        }
+    }
+});
+
+const userData = {{ user_roles | tojson }};
+new Chart(document.getElementById('userChart'), {
+    type: 'bar',
+    data: {
+        labels: userData.map(u => u.role),
+        datasets: [{
+            data: userData.map(u => u.count),
+            backgroundColor: 'rgba(108,126,225,0.7)',
+            borderRadius: 6,
+            borderSkipped: false
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#8888a0', font: { family: 'DM Sans' } }, grid: { display: false } },
+            y: { ticks: { color: '#8888a0', font: { family: 'DM Sans' } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+    }
+});
+
+const rejectData = {{ rejections | tojson }};
+new Chart(document.getElementById('rejectionChart'), {
+    type: 'bar',
+    data: {
+        labels: rejectData.map(r => r.stage),
+        datasets: [{
+            data: rejectData.map(r => r.count),
+            backgroundColor: 'rgba(245,99,66,0.65)',
+            borderRadius: 6,
+            borderSkipped: false
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#8888a0', font: { family: 'DM Sans' } }, grid: { display: false } },
+            y: { ticks: { color: '#8888a0', font: { family: 'DM Sans' } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+    }
+});
+</script>
+
+<!-- DARK MODE TOGGLE -->
+
+
+</body>
+</html>
