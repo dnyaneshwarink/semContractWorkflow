@@ -42,8 +42,8 @@ A web-based contract lifecycle management system built with Flask and MySQL. It 
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/your-username/contract-management-system.git
-cd contract-management-system
+git clone https://github.com/onlycolab8/semContractWorkflow.git
+cd semContractWorkflow
 ```
 
 **2. Create and activate a virtual environment**
